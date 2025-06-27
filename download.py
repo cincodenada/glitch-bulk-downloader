@@ -7,7 +7,7 @@
 # License:
 #  this script is in the public domain
 
-import sys, os, shutil, json, subprocess
+import sys, os, shutil, json, subprocess, ssl, re
 from http.client import InvalidURL
 from urllib.request import Request, urlopen, urlretrieve, URLError
 from urllib.parse import quote, unquote
@@ -41,6 +41,40 @@ except:
 args = sys.argv
 no_assets = "--no-assets" in args
 no_skip = "--no-skip" in args
+ignore_ssl = "--ignore-ssl" in args
+force_run = "--force" in args
+
+if ignore_ssl is True:
+    if force_run is False:
+        have_username = False
+        for arg in args:
+            print(arg)
+            if re.search(r"\d+", arg):
+                have_username = True
+                break
+        if have_username is False:
+            print("UNSAFE RUNS MUST START WITH YOUR USER ID AND PERSISTENT TOKEN. ABORTING!")
+            print("")
+            exit(1)
+        have_token = False
+        for arg in args:
+            print(arg)
+            if re.search(r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}", arg):
+                have_token = True
+                break
+        if have_token is False:
+            print("UNSAFE RUNS MUST START WITH YOUR USER ID AND PERSISTENT TOKEN. ABORTING!")
+            print("")
+            exit(1)
+        print("\n\nWARNING: YOU REQUESTED A RUN THAT BYPASSES SSL CERTIFICATE VERIFICATION!")
+        confirmation = input("ARE YOU ABSOLUTELY SURE? (Y/n) ").lower()
+        if confirmation == "y":
+            ssl._create_default_https_context = ssl._create_unverified_context
+        else:
+            print("")
+            exit(1)
+
+
 
 def get_values():
     """

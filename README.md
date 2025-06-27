@@ -73,10 +73,13 @@ In which case the script won't ask for anything and will just get to downloading
 
 ### Optional runtime flags
 
-The script supports two runtime flags, with flags needing to come after your user id and token:
+The script supports several runtime flags (which must be supplied _after_ your user id and token):
 
-1. `--no_assets`, which will make the script download your project, but not download the associated assets, and
-2. `--no-skip`, which will make the script re-download any projects you already downloaded if you run it more than once.
+1. `--no_assets` will make the script download your project, but not download the associated assets, and
+2. `--no-skip` will make the script re-download any projects you already downloaded if you run it more than once.
+3. `--ignore-ssl` will disable SSL verification. ***this is obviously dangerous*** and you should only use it if you trust the almost decade old "hyperdev" CDN. 
+
+If you use the `ignore-ssl` flag, you ***must*** have your user id and token in the CLI invocation, and you will be asked to confirm that you know what you're doing. You can bypass that question by also adding the `--force` flag, but you are assuming all risks: _verify that your assets are safe before you reupload them somewhere else!!!_
 
 ## Replacing CDN URLs in your source code
 
