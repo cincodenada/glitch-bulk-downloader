@@ -10,6 +10,7 @@
 import sys, os, shutil, json, subprocess
 from http.client import InvalidURL
 from urllib.request import Request, urlopen, urlretrieve, URLError
+from urllib.error import HTTPError
 from urllib.parse import quote, unquote
 from time import time, sleep
 
@@ -120,23 +121,26 @@ def download_project(user_token, project, project_type="active"):
     url = f"https://api.glitch.com/project/download/?authorization={user_token}&projectId={project_id}"
     file = f"./{project_title}.tgz"
     print(f"\nDownloading '{project_title}'...")
-    result = urlretrieve(url, file)
-    if bypass_tar is False:
-        print("Unpacking...")
-        unpacked_dir = './app'
-        if os.path.exists(unpacked_dir):
-            shutil.rmtree(unpacked_dir, ignore_errors=False, onerror=None)
-        command = f"tar -xvzf {file}"
-        unpack = subprocess.run(command.split(), capture_output=True, text=True)
-        wait_for_dir(unpacked_dir)
-        if not os.path.isdir(unpacked_dir):
-            print(f"ERROR: {project_title} did not extract to {unpacked_dir}!")
-        else:
-            dest = f"./{project_type}/{project_title}"
-            shutil.move(unpacked_dir, dest)
-            os.remove(file)
-            if no_assets is False:
-                download_assets(project_title, project_type)
+    try:
+        result = urlretrieve(url, file)
+        if bypass_tar is False:
+            print("Unpacking...")
+            unpacked_dir = './app'
+            if os.path.exists(unpacked_dir):
+                shutil.rmtree(unpacked_dir, ignore_errors=False, onerror=None)
+            command = f"tar -xvzf {file}"
+            unpack = subprocess.run(command.split(), capture_output=True, text=True)
+            wait_for_dir(unpacked_dir)
+            if not os.path.isdir(unpacked_dir):
+                print(f"ERROR: {project_title} did not extract to {unpacked_dir}!")
+            else:
+                dest = f"./{project_type}/{project_title}"
+                shutil.move(unpacked_dir, dest)
+                os.remove(file)
+                if no_assets is False:
+                    download_assets(project_title, project_type)
+    except HTTPError as e:
+        print(f"WARNING: could not retrieve {url} ({e.code}), skipping")
 
 def download_assets(project_title, project_type):
     """
