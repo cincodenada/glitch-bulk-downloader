@@ -47,6 +47,10 @@ def get_values():
     """
     Ask for user credentials, unless they were already provided on the command line
     """
+
+    # We've already processed optional args above, so remove them if present
+    args = [a for a in args if not a.startswith('--')]
+
     if len(args) > 1:
         user_id = args[1]
     else:
