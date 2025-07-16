@@ -119,7 +119,7 @@ def download_project(user_token, project, project_type="active"):
     if not os.path.exists(json_path):
         print(f"Saving project JSON for {project_title}...")
         with open(json_path, "w") as outfile:
-            outfile.write(json.dumps(project))
+            outfile.write(json.dumps(project, indent=2))
 
     if os.path.exists(base_path):
         if not no_skip:
