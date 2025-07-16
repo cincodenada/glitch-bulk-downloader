@@ -42,7 +42,7 @@ except:
 args = sys.argv
 no_assets = "--no-assets" in args
 no_skip = "--no-skip" in args
-no_verify = "--no-verify" in args
+no_verify_assets = "--no-verify-assets" in args
 
 # Stub implementation of deprecated urlretrieve()
 # Reimplemented here to support a context argument for --no-verify
@@ -184,7 +184,7 @@ def download_assets(project_title, project_type):
         print(f"glitch-assets error for {project_title}: {e}")
 
     ssl_context = None
-    if no_verify:
+    if no_verify_assets:
         ssl_context = ssl.create_default_context()
         ssl_context.check_hostname = False
         ssl_context.verify_mode = ssl.CERT_NONE
