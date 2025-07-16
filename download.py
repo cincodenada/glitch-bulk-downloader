@@ -9,7 +9,7 @@
 
 import sys, os, shutil, json, subprocess, ssl
 from http.client import InvalidURL
-from urllib.request import Request, urlopen, urlretrieve, URLError
+from urllib.request import Request, urlopen, URLError
 from urllib.error import HTTPError
 from urllib.parse import quote, unquote
 from time import time, sleep
@@ -43,6 +43,13 @@ args = sys.argv
 no_assets = "--no-assets" in args
 no_skip = "--no-skip" in args
 no_verify = "--no-verify" in args
+
+# Stub implementation of deprecated urlretrieve()
+# Reimplemented here to support a context argument for --no-verify
+def urlretrieve(url, dest, context = None):
+    download = urlopen(url, context=context)
+    outfile = open(dest, 'wb')
+    outfile.write(download.read())
 
 def get_values():
     """
@@ -147,9 +154,6 @@ def download_assets(project_title, project_type):
     """
     Download all assets associated with this project
     """
-    if no_verify:
-        prev_context = ssl._create_default_https_context
-        ssl._create_default_https_context = ssl._create_unverified_context
     # It is a major failing of Python that we can't tell
     # it to halt execution until shutils is done...
     base_path = f"./{project_type}/{project_title}"
@@ -178,6 +182,13 @@ def download_assets(project_title, project_type):
                     assets[uuid] = record
     except Exception as e:
         print(f"glitch-assets error for {project_title}: {e}")
+
+    ssl_context = None
+    if no_verify:
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+
     for entry in  [x for x in assets.values() if x is not False]:
         # Do a bit of URL hackery because there's a surprising number
         # of bad URLs in people's glitch assets files...
@@ -186,15 +197,13 @@ def download_assets(project_title, project_type):
         dest = f"{dir}/{name}"
         print(f"Downloading {name} from {url}...")
         try:
-            urlretrieve(url, dest)
+            urlretrieve(url, dest, context=ssl_context)
         except URLError as e:
             print(f"error getting url: {e}")
         except ValueError as e:
             print(f"bad url: {e}")
         except InvalidURL as e:
             print(f"invalid url: {e}")
-
-    ssl._create_default_https_context = prev_context
 
 
 """
